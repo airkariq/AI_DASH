@@ -1,0 +1,713 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>글로벌 방위산업 PEST 분석 대시보드</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Chart.js for Visual Analytics -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <!-- Google Fonts Inter & Noto Sans KR -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;800&family=Noto+Sans+KR:wght@300;400;500;700;900&display=swap" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        brand: {
+                            dark: '#0f172a',
+                            navy: '#1e293b',
+                            card: '#1e293b',
+                            political: '#ef4444', // Red
+                            economic: '#10b981',  // Emerald
+                            social: '#f59e0b',    // Amber
+                            technological: '#3b82f6', // Blue
+                        }
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'Noto Sans KR', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body {
+            background-color: #0b0f19;
+            color: #f3f4f6;
+            font-family: 'Inter', 'Noto Sans KR', sans-serif;
+        }
+        .glass-panel {
+            background: rgba(30, 41, 59, 0.7);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+        }
+        .glow-political { box-shadow: 0 0 25px -5px rgba(239, 68, 68, 0.25); }
+        .glow-economic { box-shadow: 0 0 25px -5px rgba(16, 185, 129, 0.25); }
+        .glow-social { box-shadow: 0 0 25px -5px rgba(245, 158, 11, 0.25); }
+        .glow-tech { box-shadow: 0 0 25px -5px rgba(59, 130, 246, 0.25); }
+
+        .pest-tab-btn.active-political { background-color: rgba(239, 68, 68, 0.2); border-color: #ef4444; color: #fca5a5; }
+        .pest-tab-btn.active-economic { background-color: rgba(16, 185, 129, 0.2); border-color: #10b981; color: #6ee7b7; }
+        .pest-tab-btn.active-social { background-color: rgba(245, 158, 11, 0.2); border-color: #f59e0b; color: #fde047; }
+        .pest-tab-btn.active-tech { background-color: rgba(59, 130, 246, 0.2); border-color: #3b82f6; color: #93c5fd; }
+        .pest-tab-btn.active-all { background-color: rgba(255, 255, 255, 0.1); border-color: #cbd5e1; color: #ffffff; }
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #0b0f19;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #334155;
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #475569;
+        }
+    </style>
+</head>
+<body class="min-h-screen pb-12">
+
+    <!-- Header Section -->
+    <header class="border-b border-slate-800 bg-slate-900/60 sticky top-0 z-50 backdrop-blur-md">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
+            <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+                <div class="flex items-center space-x-3">
+                    <div class="p-2.5 bg-gradient-to-br from-indigo-500 to-blue-600 rounded-xl shadow-lg shadow-indigo-500/30">
+                        <i data-lucide="shield-alert" class="w-7 h-7 text-white"></i>
+                    </div>
+                    <div>
+                        <span class="text-xs font-semibold text-indigo-400 tracking-wider uppercase">Strategic Defense Intelligence</span>
+                        <h1 class="text-xl sm:text-2xl font-black text-white tracking-tight">글로벌 방위산업 PEST 분석</h1>
+                    </div>
+                </div>
+                <!-- Quick Stats / Actions -->
+                <div class="flex items-center gap-3">
+                    <div class="relative w-full sm:w-64">
+                        <input type="text" id="searchInput" placeholder="키워드 검색 (예: 드론, NATO, AI)..." 
+                            class="w-full bg-slate-950/80 text-sm border border-slate-700/80 rounded-xl px-4 py-2 pl-10 focus:outline-none focus:border-indigo-500 text-slate-200 placeholder-slate-500">
+                        <i data-lucide="search" class="w-4 h-4 text-slate-500 absolute left-3 top-2.5"></i>
+                    </div>
+                    <button onclick="window.print()" class="p-2 bg-slate-800 hover:bg-slate-700 border border-slate-700 rounded-xl text-slate-300 transition-colors" title="프린트/PDF 저장">
+                        <i data-lucide="printer" class="w-5 h-5"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-8 space-y-8">
+
+        <!-- Executive Summary Cards / Key Metrics -->
+        <section class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
+            <!-- Metric 1 -->
+            <div class="glass-panel p-5 rounded-2xl border-l-4 border-l-red-500 relative overflow-hidden group hover:scale-[1.02] transition-transform">
+                <div class="absolute -right-4 -bottom-4 opacity-10 text-red-500 group-hover:opacity-20 transition-opacity">
+                    <i data-lucide="globe" class="w-28 h-28"></i>
+                </div>
+                <div class="text-slate-400 text-xs font-semibold uppercase tracking-wider mb-1">2025 글로벌 군사비</div>
+                <div class="text-2xl sm:text-3xl font-extrabold text-white tracking-tight mb-2">$2조 8,870억</div>
+                <div class="flex items-center text-xs font-medium text-red-400">
+                    <i data-lucide="trending-up" class="w-4 h-4 mr-1"></i>
+                    <span>11년 연속 실질 성장세 기록</span>
+                </div>
+            </div>
+
+            <!-- Metric 2 -->
+            <div class="glass-panel p-5 rounded-2xl border-l-4 border-l-emerald-500 relative overflow-hidden group hover:scale-[1.02] transition-transform">
+                <div class="absolute -right-4 -bottom-4 opacity-10 text-emerald-500 group-hover:opacity-20 transition-opacity">
+                    <i data-lucide="award" class="w-28 h-28"></i>
+                </div>
+                <text class="text-slate-400 text-xs font-semibold uppercase tracking-wider mb-1">NATO 방위비 목표 (2035)</text>
+                <div class="text-2xl sm:text-3xl font-extrabold text-white tracking-tight mb-2">GDP 5.0%</div>
+                <div class="flex items-center text-xs font-medium text-emerald-400">
+                    <i data-lucide="check-circle-2" class="w-4 h-4 mr-1"></i>
+                    <span>하드웨어 예산 3.5% 직접 할당</span>
+                </div>
+            </div>
+
+            <!-- Metric 3 -->
+            <div class="glass-panel p-5 rounded-2xl border-l-4 border-l-amber-500 relative overflow-hidden group hover:scale-[1.02] transition-transform">
+                <div class="absolute -right-4 -bottom-4 opacity-10 text-amber-500 group-hover:opacity-20 transition-opacity">
+                    <i data-lucide="zap" class="w-28 h-28"></i>
+                </div>
+                <div class="text-slate-400 text-xs font-semibold uppercase tracking-wider mb-1">핵심 조달 가치</div>
+                <div class="text-2xl sm:text-3xl font-extrabold text-white tracking-tight mb-2">Speed to Field</div>
+                <div class="flex items-center text-xs font-medium text-amber-400">
+                    <i data-lucide="clock" class="w-4 h-4 mr-1"></i>
+                    <span>전장 신속 배치 속도가 최우선</span>
+                </div>
+            </div>
+
+            <!-- Metric 4 -->
+            <div class="glass-panel p-5 rounded-2xl border-l-4 border-l-blue-500 relative overflow-hidden group hover:scale-[1.02] transition-transform">
+                <div class="absolute -right-4 -bottom-4 opacity-10 text-blue-500 group-hover:opacity-20 transition-opacity">
+                    <i data-lucide="cpu" class="w-28 h-28"></i>
+                </div>
+                <div class="text-slate-400 text-xs font-semibold uppercase tracking-wider mb-1">미래 전장 AI 전환</div>
+                <div class="text-2xl sm:text-3xl font-extrabold text-white tracking-tight mb-2">80 ~ 90%</div>
+                <div class="flex items-center text-xs font-medium text-blue-400">
+                    <i data-lucide="bot" class="w-4 h-4 mr-1"></i>
+                    <span>에이전트 AI 기반 자동화 수행</span>
+                </div>
+            </div>
+        </section>
+
+        <!-- Visual Analytics Section (Chart & Radar) -->
+        <section class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <!-- PEST Strategic Dynamic Radar -->
+            <div class="glass-panel p-6 rounded-2xl lg:col-span-1 flex flex-col justify-between">
+                <div>
+                    <div class="flex items-center justify-between mb-4">
+                        <h2 class="text-lg font-bold text-white flex items-center gap-2">
+                            <i data-lucide="radar" class="w-5 h-5 text-indigo-400"></i>
+                            PEST 영향도 레이더
+                        </h2>
+                        <span class="text-xs bg-indigo-500/20 text-indigo-300 px-2.5 py-1 rounded-full border border-indigo-500/30">종합 평가</span>
+                    </div>
+                    <p class="text-xs text-slate-400 mb-4">방위산업 생태계에 미치는 영역별 영향력 수준 평가</p>
+                </div>
+                <div class="relative aspect-square w-full max-w-[280px] mx-auto">
+                    <canvas id="pestRadarChart"></canvas>
+                </div>
+                <div class="mt-4 pt-4 border-t border-slate-800 text-xs text-slate-400 text-center">
+                    정치적·기술적 요인이 방산 시장 재편의 핵심 리드 요인으로 작용
+                </div>
+            </div>
+
+            <!-- Strategic Overview Visual Breakdown -->
+            <div class="glass-panel p-6 rounded-2xl lg:col-span-2 flex flex-col justify-between">
+                <div class="flex items-center justify-between mb-4">
+                    <h2 class="text-lg font-bold text-white flex items-center gap-2">
+                        <i data-lucide="activity" class="w-5 h-5 text-emerald-400"></i>
+                        방산 시장 4대 핵심 구조 변화
+                    </h2>
+                    <span class="text-xs bg-slate-800 text-slate-400 px-2.5 py-1 rounded-full">Key Highlights</span>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 my-auto">
+                    <!-- High Impact Item 1 -->
+                    <div class="p-4 rounded-xl bg-slate-900/80 border border-slate-800 hover:border-red-500/50 transition-colors">
+                        <div class="flex items-center gap-3 mb-2">
+                            <div class="p-2 rounded-lg bg-red-500/20 text-red-400">
+                                <i data-lucide="landmark" class="w-5 h-5"></i>
+                            </div>
+                            <div>
+                                <div class="text-xs font-semibold text-red-400">Political Impact</div>
+                                <div class="text-sm font-bold text-white">상위 5개국 지출 58% 집중</div>
+                            </div>
+                        </div>
+                        <p class="text-xs text-slate-400 leading-relaxed">
+                            미·중·러·독·인 중심의 강대국 안보 재편 및 NATO의 GDP 5.0% 증액 목표 수립.
+                        </p>
+                    </div>
+
+                    <!-- High Impact Item 2 -->
+                    <div class="p-4 rounded-xl bg-slate-900/80 border border-slate-800 hover:border-emerald-500/50 transition-colors">
+                        <div class="flex items-center gap-3 mb-2">
+                            <div class="p-2 rounded-lg bg-emerald-500/20 text-emerald-400">
+                                <i data-lucide="truck" class="w-5 h-5"></i>
+                            </div>
+                            <div>
+                                <div class="text-xs font-semibold text-emerald-400">Economic Impact</div>
+                                <div class="text-sm font-bold text-white">공급망 병목 & 수주잔고 폭증</div>
+                            </div>
+                        </div>
+                        <p class="text-xs text-slate-400 leading-relaxed">
+                            체계업체 수주 잔고 50%+ 급증에도 하위 부품사(Tier 2·3) 병목으로 매출 전환 지연.
+                        </p>
+                    </div>
+
+                    <!-- High Impact Item 3 -->
+                    <div class="p-4 rounded-xl bg-slate-900/80 border border-slate-800 hover:border-amber-500/50 transition-colors">
+                        <div class="flex items-center gap-3 mb-2">
+                            <div class="p-2 rounded-lg bg-amber-500/20 text-amber-400">
+                                <i data-lucide="shield-check" class="w-5 h-5"></i>
+                            </div>
+                            <div>
+                                <div class="text-xs font-semibold text-amber-400">Social Impact</div>
+                                <div class="text-sm font-bold text-white">재무장 체제 및 규제 완화</div>
+                            </div>
+                        </div>
+                        <p class="text-xs text-slate-400 leading-relaxed">
+                            전시 사회 체제 수용, 민간 테크 기업의 방산 생태계 진입 허들 급격한 완화.
+                        </p>
+                    </div>
+
+                    <!-- High Impact Item 4 -->
+                    <div class="p-4 rounded-xl bg-slate-900/80 border border-slate-800 hover:border-blue-500/50 transition-colors">
+                        <div class="flex items-center gap-3 mb-2">
+                            <div class="p-2 rounded-lg bg-blue-500/20 text-blue-400">
+                                <i data-lucide="cpu" class="w-5 h-5"></i>
+                            </div>
+                            <div>
+                                <div class="text-xs font-semibold text-blue-400">Technological Impact</div>
+                                <div class="text-sm font-bold text-white">소모성 자율 무기 & 에이전트 AI</div>
+                            </div>
+                        </div>
+                        <p class="text-xs text-slate-400 leading-relaxed">
+                            저가 드론 대량 생산, 기계 속도 워페어(Machine-speed Warfare)로의 전환.
+                        </p>
+                    </div>
+                </div>
+
+                <div class="mt-4 pt-3 border-t border-slate-800 flex items-center justify-between text-xs text-slate-400">
+                    <span>* 자료 기반: 글로벌 방위산업 분석 보고서</span>
+                    <span class="text-indigo-400 font-medium">한국 방산(K-방산): 가성비 및 적기 인도 능력으로 글로벌 Top 100 상위권 도약</span>
+                </div>
+            </div>
+        </section>
+
+        <!-- Interactive Filter Tabs -->
+        <div class="flex flex-wrap items-center justify-center gap-2 sm:gap-3 py-2 border-b border-slate-800" id="filterTabs">
+            <button onclick="filterPEST('all')" class="pest-tab-btn active-all px-4 py-2 rounded-xl border border-slate-700 font-semibold text-sm transition-all flex items-center gap-2">
+                <i data-lucide="layers" class="w-4 h-4"></i> 전체 보기
+            </button>
+            <button onclick="filterPEST('political')" class="pest-tab-btn px-4 py-2 rounded-xl border border-slate-800 font-semibold text-sm text-slate-400 hover:text-white transition-all flex items-center gap-2">
+                <i data-lucide="landmark" class="w-4 h-4 text-red-500"></i> 정치적 (Political)
+            </button>
+            <button onclick="filterPEST('economic')" class="pest-tab-btn px-4 py-2 rounded-xl border border-slate-800 font-semibold text-sm text-slate-400 hover:text-white transition-all flex items-center gap-2">
+                <i data-lucide="line-chart" class="w-4 h-4 text-emerald-500"></i> 경제적 (Economic)
+            </button>
+            <button onclick="filterPEST('social')" class="pest-tab-btn px-4 py-2 rounded-xl border border-slate-800 font-semibold text-sm text-slate-400 hover:text-white transition-all flex items-center gap-2">
+                <i data-lucide="users" class="w-4 h-4 text-amber-500"></i> 사회적 (Social)
+            </button>
+            <button onclick="filterPEST('technological')" class="pest-tab-btn px-4 py-2 rounded-xl border border-slate-800 font-semibold text-sm text-slate-400 hover:text-white transition-all flex items-center gap-2">
+                <i data-lucide="cpu" class="w-4 h-4 text-blue-500"></i> 기술적 (Technological)
+            </button>
+        </div>
+
+        <!-- Detailed PEST Cards Grid -->
+        <section class="grid grid-cols-1 md:grid-cols-2 gap-6" id="pestGrid">
+
+            <!-- 1. POLITICAL CARD -->
+            <div class="pest-card glass-panel rounded-2xl p-6 glow-political border-t-4 border-t-red-500 transition-all duration-300" data-category="political">
+                <div class="flex items-center justify-between mb-6 pb-4 border-b border-slate-800">
+                    <div class="flex items-center space-x-3">
+                        <div class="p-3 bg-red-500/10 rounded-xl text-red-500 border border-red-500/20">
+                            <i data-lucide="landmark" class="w-6 h-6"></i>
+                        </div>
+                        <div>
+                            <span class="text-xs font-bold text-red-400 tracking-wider uppercase">Factor 01</span>
+                            <h3 class="text-xl font-bold text-white">정치적 요인 (Political)</h3>
+                        </div>
+                    </div>
+                    <span class="px-3 py-1 bg-red-500/10 text-red-400 text-xs font-semibold rounded-full border border-red-500/20">안보 질서 재편</span>
+                </div>
+
+                <div class="space-y-4">
+                    <!-- Item 1 -->
+                    <div class="pest-item p-4 rounded-xl bg-slate-900/50 border border-slate-800/80 hover:bg-slate-900 transition-colors">
+                        <h4 class="text-sm font-bold text-slate-100 flex items-start gap-2 mb-1">
+                            <span class="w-1.5 h-1.5 rounded-full bg-red-500 mt-2 shrink-0"></span>
+                            글로벌 군사비 지출 급증 및 지정학적 균열
+                        </h4>
+                        <p class="text-xs text-slate-400 leading-relaxed pl-3.5">
+                            세계 안보 환경 악화와 강대국 간 대립 심화로 전 세계 군사비 지출은 11년 연속 실질 성장세를 기록하며 <strong class="text-slate-200">2025년 2조 8,870억 달러</strong>에 도달했습니다.
+                        </p>
+                    </div>
+
+                    <!-- Item 2 -->
+                    <div class="pest-item p-4 rounded-xl bg-slate-900/50 border border-slate-800/80 hover:bg-slate-900 transition-colors">
+                        <h4 class="text-sm font-bold text-slate-100 flex items-start gap-2 mb-1">
+                            <span class="w-1.5 h-1.5 rounded-full bg-red-500 mt-2 shrink-0"></span>
+                            상위 지출국으로의 재정 집중
+                        </h4>
+                        <p class="text-xs text-slate-400 leading-relaxed pl-3.5">
+                            미국, 중국, 러시아, 독일, 인도 등 <strong class="text-slate-200">상위 5개국이 전 세계 군사비의 58%를 차지</strong>하며, 미·중 간 지출 격차 축소 등 강대국 중심 안보 재편이 가속화됩니다.
+                        </p>
+                    </div>
+
+                    <!-- Item 3 -->
+                    <div class="pest-item p-4 rounded-xl bg-slate-900/50 border border-slate-800/80 hover:bg-slate-900 transition-colors">
+                        <h4 class="text-sm font-bold text-slate-100 flex items-start gap-2 mb-1">
+                            <span class="w-1.5 h-1.5 rounded-full bg-red-500 mt-2 shrink-0"></span>
+                            NATO 방위비 증액 목표 대폭 상향
+                        </h4>
+                        <p class="text-xs text-slate-400 leading-relaxed pl-3.5">
+                            2025년 헤이그 정상회의에서 <strong class="text-slate-200">2035년까지 각 회원국 GDP의 5.0% 지출</strong> 및 하드웨어 구축에 3.5%를 직접 할당하는 신규 목표에 합의했습니다.
+                        </p>
+                    </div>
+
+                    <!-- Item 4 -->
+                    <div class="pest-item p-4 rounded-xl bg-slate-900/50 border border-slate-800/80 hover:bg-slate-900 transition-colors">
+                        <h4 class="text-sm font-bold text-slate-100 flex items-start gap-2 mb-1">
+                            <span class="w-1.5 h-1.5 rounded-full bg-red-500 mt-2 shrink-0"></span>
+                            EU의 전략적 자율성 및 규제 개편
+                        </h4>
+                        <p class="text-xs text-slate-400 leading-relaxed pl-3.5">
+                            유럽 방위산업 전략(EDIS)과 'Readiness 2030'을 통해 역내 자급률 제고 및 공동 조달을 추진하며, 방산 투자를 위한 재정 지출 제약을 완화하고 있습니다.
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 2. ECONOMIC CARD -->
+            <div class="pest-card glass-panel rounded-2xl p-6 glow-economic border-t-4 border-t-emerald-500 transition-all duration-300" data-category="economic">
+                <div class="flex items-center justify-between mb-6 pb-4 border-b border-slate-800">
+                    <div class="flex items-center space-x-3">
+                        <div class="p-3 bg-emerald-500/10 rounded-xl text-emerald-500 border border-emerald-500/20">
+                            <i data-lucide="line-chart" class="w-6 h-6"></i>
+                        </div>
+                        <div>
+                            <span class="text-xs font-bold text-emerald-400 tracking-wider uppercase">Factor 02</span>
+                            <h3 class="text-xl font-bold text-white">경제적 요인 (Economic)</h3>
+                        </div>
+                    </div>
+                    <span class="px-3 py-1 bg-emerald-500/10 text-emerald-400 text-xs font-semibold rounded-full border border-emerald-500/20">공급망 & 시장 역학</span>
+                </div>
+
+                <div class="space-y-4">
+                    <!-- Item 1 -->
+                    <div class="pest-item p-4 rounded-xl bg-slate-900/50 border border-slate-800/80 hover:bg-slate-900 transition-colors">
+                        <h4 class="text-sm font-bold text-slate-100 flex items-start gap-2 mb-1">
+                            <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 mt-2 shrink-0"></span>
+                            국가 재정 부담 및 기회비용 증대
+                        </h4>
+                        <p class="text-xs text-slate-400 leading-relaxed pl-3.5">
+                            글로벌 군사 부담(GDP 대비 비중)이 2.5% 수준으로 고착화되면서, 기후변화 대응 및 지속가능개발목표(SDGs) 등 타 분야 예산을 압박하고 있습니다.
+                        </p>
+                    </div>
+
+                    <!-- Item 2 -->
+                    <div class="pest-item p-4 rounded-xl bg-slate-900/50 border border-slate-800/80 hover:bg-slate-900 transition-colors">
+                        <h4 class="text-sm font-bold text-slate-100 flex items-start gap-2 mb-1">
+                            <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 mt-2 shrink-0"></span>
+                            공급망 병목 현상 및 실질 매출 제약
+                        </h4>
+                        <p class="text-xs text-slate-400 leading-relaxed pl-3.5">
+                            체계 종합업체 수주 잔고가 50% 이상 폭증했으나, <strong class="text-slate-200">하위 부품사(Tier 2·3) 제조 역량 부재</strong>로 실질 매출 전환에 차질을 빚고 있습니다.
+                        </p>
+                    </div>
+
+                    <!-- Item 3 -->
+                    <div class="pest-item p-4 rounded-xl bg-slate-900/50 border border-slate-800/80 hover:bg-slate-900 transition-colors">
+                        <h4 class="text-sm font-bold text-slate-100 flex items-start gap-2 mb-1">
+                            <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 mt-2 shrink-0"></span>
+                            유럽의 역외 공급망 의존성 고착
+                        </h4>
+                        <p class="text-xs text-slate-400 leading-relaxed pl-3.5">
+                            역내 생산 능력 한계로 우크라이나 전쟁 이후 <strong class="text-slate-200">역외 구매액의 63%가 미국으로 유출</strong>되는 등 미국 및 신흥 공급국(한국) 의존이 지속됩니다.
+                        </p>
+                    </div>
+
+                    <!-- Item 4 -->
+                    <div class="pest-item p-4 rounded-xl bg-slate-900/50 border border-slate-800/80 hover:bg-slate-900 transition-colors">
+                        <h4 class="text-sm font-bold text-slate-100 flex items-start gap-2 mb-1">
+                            <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 mt-2 shrink-0"></span>
+                            한국 방산의 수출 경제력 확대 (K-방산)
+                        </h4>
+                        <p class="text-xs text-slate-400 leading-relaxed pl-3.5">
+                            검증된 성능, 가성비, 적기 인도 능력을 바탕으로 한화 등 한국 방산 기업이 <strong class="text-slate-200">글로벌 Top 100 상위권 진입 및 대규모 수주</strong>를 달성했습니다.
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 3. SOCIAL CARD -->
+            <div class="pest-card glass-panel rounded-2xl p-6 glow-social border-t-4 border-t-amber-500 transition-all duration-300" data-category="social">
+                <div class="flex items-center justify-between mb-6 pb-4 border-b border-slate-800">
+                    <div class="flex items-center space-x-3">
+                        <div class="p-3 bg-amber-500/10 rounded-xl text-amber-500 border border-amber-500/20">
+                            <i data-lucide="users" class="w-6 h-6"></i>
+                        </div>
+                        <div>
+                            <span class="text-xs font-bold text-amber-400 tracking-wider uppercase">Factor 03</span>
+                            <h3 class="text-xl font-bold text-white">사회적 요인 (Social)</h3>
+                        </div>
+                    </div>
+                    <span class="px-3 py-1 bg-amber-500/10 text-amber-400 text-xs font-semibold rounded-full border border-amber-500/20">인식 & 조달 패러다임</span>
+                </div>
+
+                <div class="space-y-4">
+                    <!-- Item 1 -->
+                    <div class="pest-item p-4 rounded-xl bg-slate-900/50 border border-slate-800/80 hover:bg-slate-900 transition-colors">
+                        <h4 class="text-sm font-bold text-slate-100 flex items-start gap-2 mb-1">
+                            <span class="w-1.5 h-1.5 rounded-full bg-amber-500 mt-2 shrink-0"></span>
+                            전시 및 재무장 사회·경제 체제로의 인식 전환
+                        </h4>
+                        <p class="text-xs text-slate-400 leading-relaxed pl-3.5">
+                            지속적인 분쟁 확산으로 인해 주요국 사회 전반이 장기적인 전시 및 재무장 경제 체제로의 구조적 전환을 당연하게 수용하는 분위기가 형성되었습니다.
+                        </p>
+                    </div>
+
+                    <!-- Item 2 -->
+                    <div class="pest-item p-4 rounded-xl bg-slate-900/50 border border-slate-800/80 hover:bg-slate-900 transition-colors">
+                        <h4 class="text-sm font-bold text-slate-100 flex items-start gap-2 mb-1">
+                            <span class="w-1.5 h-1.5 rounded-full bg-amber-500 mt-2 shrink-0"></span>
+                            조달 패러다임의 변화 ('배치 속도' 우의)
+                        </h4>
+                        <p class="text-xs text-slate-400 leading-relaxed pl-3.5">
+                            완벽한 규제 준수나 관료주의적 절차보다 무기 체계를 전장에 신속히 공급하는 <strong class="text-slate-200">'배치 속도(Speed to Field)'</strong>가 최우선 가치로 부상했습니다.
+                        </p>
+                    </div>
+
+                    <!-- Item 3 -->
+                    <div class="pest-item p-4 rounded-xl bg-slate-900/50 border border-slate-800/80 hover:bg-slate-900 transition-colors">
+                        <h4 class="text-sm font-bold text-slate-100 flex items-start gap-2 mb-1">
+                            <span class="w-1.5 h-1.5 rounded-full bg-amber-500 mt-2 shrink-0"></span>
+                            신흥 테크 및 민간 기술 유입 촉진
+                        </h4>
+                        <p class="text-xs text-slate-400 leading-relaxed pl-3.5">
+                            미국 CMMC 2단계 유예, EU 환경 규제 예외 등 규제 장벽 완화를 통해 <strong class="text-slate-200">민간 스타트업 및 테크 기업의 진입 허들</strong>이 크게 낮아졌습니다.
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 4. TECHNOLOGICAL CARD -->
+            <div class="pest-card glass-panel rounded-2xl p-6 glow-tech border-t-4 border-t-blue-500 transition-all duration-300" data-category="technological">
+                <div class="flex items-center justify-between mb-6 pb-4 border-b border-slate-800">
+                    <div class="flex items-center space-x-3">
+                        <div class="p-3 bg-blue-500/10 rounded-xl text-blue-500 border border-blue-500/20">
+                            <i data-lucide="cpu" class="w-6 h-6"></i>
+                        </div>
+                        <div>
+                            <span class="text-xs font-bold text-blue-400 tracking-wider uppercase">Factor 04</span>
+                            <h3 class="text-xl font-bold text-white">기술적 요인 (Technological)</h3>
+                        </div>
+                    </div>
+                    <span class="px-3 py-1 bg-blue-500/10 text-blue-400 text-xs font-semibold rounded-full border border-blue-500/20">미래전 & 기술 혁신</span>
+                </div>
+
+                <div class="space-y-4">
+                    <!-- Item 1 -->
+                    <div class="pest-item p-4 rounded-xl bg-slate-900/50 border border-slate-800/80 hover:bg-slate-900 transition-colors">
+                        <h4 class="text-sm font-bold text-slate-100 flex items-start gap-2 mb-1">
+                            <span class="w-1.5 h-1.5 rounded-full bg-blue-500 mt-2 shrink-0"></span>
+                            비대칭 비용 구조 및 소모성 무기 체계 전환
+                        </h4>
+                        <p class="text-xs text-slate-400 leading-relaxed pl-3.5">
+                            저가 드론과 고가 요격 미사일 간 비용 불균형에 대응해 <strong class="text-slate-200">저비용 자율 무기 및 유·무인 복합 체계(CCA)</strong> 대량 생산으로 패러다임이 이동했습니다.
+                        </p>
+                    </div>
+
+                    <!-- Item 2 -->
+                    <div class="pest-item p-4 rounded-xl bg-slate-900/50 border border-slate-800/80 hover:bg-slate-900 transition-colors">
+                        <h4 class="text-sm font-bold text-slate-100 flex items-start gap-2 mb-1">
+                            <span class="w-1.5 h-1.5 rounded-full bg-blue-500 mt-2 shrink-0"></span>
+                            에이전트 AI 및 기계 속도 워페어 (Machine-speed)
+                        </h4>
+                        <p class="text-xs text-slate-400 leading-relaxed pl-3.5">
+                            GenAI.mil, 프로젝트 메이븐 등 AI 도입으로 <strong class="text-slate-200">지휘통제 과업의 80~90%를 자동 수행</strong>하는 기술적 격변이 진행 중입니다.
+                        </p>
+                    </div>
+
+                    <!-- Item 3 -->
+                    <div class="pest-item p-4 rounded-xl bg-slate-900/50 border border-slate-800/80 hover:bg-slate-900 transition-colors">
+                        <h4 class="text-sm font-bold text-slate-100 flex items-start gap-2 mb-1">
+                            <span class="w-1.5 h-1.5 rounded-full bg-blue-500 mt-2 shrink-0"></span>
+                            극초음속 및 방공망 기술 경쟁
+                        </h4>
+                        <p class="text-xs text-slate-400 leading-relaxed pl-3.5">
+                            마하 5 이상의 극초음속 글라이드 비행체(HGV) 상용화에 맞서, 미국의 '골든 돔(Golden Dome)' 등 다층 방공망 프로젝트가 가동되고 있습니다.
+                        </p>
+                    </div>
+
+                    <!-- Item 4 -->
+                    <div class="pest-item p-4 rounded-xl bg-slate-900/50 border border-slate-800/80 hover:bg-slate-900 transition-colors">
+                        <h4 class="text-sm font-bold text-slate-100 flex items-start gap-2 mb-1">
+                            <span class="w-1.5 h-1.5 rounded-full bg-blue-500 mt-2 shrink-0"></span>
+                            우주 전력망 및 디지털 엔지니어링
+                        </h4>
+                        <p class="text-xs text-slate-400 leading-relaxed pl-3.5">
+                            군사 위성 C4ISR 기반 구축과 디지털 트윈, 모듈형 개방 아키텍처(MOSA) 도입으로 개발 및 개량 리드타임이 단축되고 있습니다.
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+        </section>
+
+        <!-- Strategic Implications & Recommendations Section -->
+        <section class="glass-panel p-6 sm:p-8 rounded-2xl border-t border-slate-800">
+            <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
+                <div>
+                    <h2 class="text-xl font-extrabold text-white flex items-center gap-2">
+                        <i data-lucide="target" class="w-6 h-6 text-indigo-400"></i>
+                        방산 기업 및 정부를 위한 전략적 시사점
+                    </h2>
+                    <p class="text-xs text-slate-400 mt-1">PEST 분석 결과 기반 3대 실행 액션 플랜</p>
+                </div>
+                <div class="flex items-center gap-2">
+                    <span class="px-3 py-1 bg-indigo-500/10 text-indigo-400 border border-indigo-500/30 text-xs rounded-full font-medium">Strategic Roadmap</span>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div class="p-5 rounded-xl bg-slate-900/90 border border-slate-800 relative">
+                    <div class="text-3xl font-black text-slate-800 absolute right-4 bottom-2 select-none">01</div>
+                    <div class="text-indigo-400 font-bold text-sm mb-2 flex items-center gap-2">
+                        <i data-lucide="refresh-cw" class="w-4 h-4"></i>
+                        공급망 병목 해결 (Tier 2·3)
+                    </div>
+                    <p class="text-xs text-slate-400 leading-relaxed">
+                        수주 잔고의 실질 매출 전환을 위해 하위 부품 제조사의 공정 자동화 지원 및 공급망 생태계 내재화 추진 필수.
+                    </p>
+                </div>
+
+                <div class="p-5 rounded-xl bg-slate-900/90 border border-slate-800 relative">
+                    <div class="text-3xl font-black text-slate-800 absolute right-4 bottom-2 select-none">02</div>
+                    <div class="text-indigo-400 font-bold text-sm mb-2 flex items-center gap-2">
+                        <i data-lucide="zap" class="w-4 h-4"></i>
+                        Speed to Field 최우선화
+                    </div>
+                    <p class="text-xs text-slate-400 leading-relaxed">
+                        소모성 드론 및 자율 체계 중심의 신속 조달 프로토콜 정립. 과도한 관료주의 절차 탈피 및 모듈화 구조(MOSA) 적용.
+                    </p>
+                </div>
+
+                <div class="p-5 rounded-xl bg-slate-900/90 border border-slate-800 relative">
+                    <div class="text-3xl font-black text-slate-800 absolute right-4 bottom-2 select-none">03</div>
+                    <div class="text-indigo-400 font-bold text-sm mb-2 flex items-center gap-2">
+                        <i data-lucide="brain-circuit" class="w-4 h-4"></i>
+                        AI 및 디지털 트윈 내재화
+                    </div>
+                    <p class="text-xs text-slate-400 leading-relaxed">
+                        기계 속도 워페어 시대를 대비해 에이전트 AI 및 C4ISR 우주 전력망 기술 결합. 민간 테크 기업과의 전략적 M&A 확대.
+                    </p>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- Footer -->
+    <footer class="mt-16 border-t border-slate-800 py-8 text-center text-xs text-slate-500">
+        <div class="max-w-7xl mx-auto px-4">
+            <p>글로벌 방위산업 PEST 분석 인포그래픽 대시보드 | Global Defense Industry PEST Analysis</p>
+            <p class="mt-1 text-slate-600">Based on Global Defense Market Intelligence Report 2025-2035</p>
+        </div>
+    </footer>
+
+    <!-- JavaScript Logic -->
+    <script>
+        // Initialize Lucide Icons
+        lucide.createIcons();
+
+        // Initialize Chart.js Radar Chart
+        document.addEventListener("DOMContentLoaded", function () {
+            const ctx = document.getElementById('pestRadarChart').getContext('2d');
+            
+            new Chart(ctx, {
+                type: 'radar',
+                data: {
+                    labels: [
+                        '정치적 (Political)', 
+                        '경제적 (Economic)', 
+                        '사회적 (Social)', 
+                        '기술적 (Technological)'
+                    ],
+                    datasets: [{
+                        label: '영향도 (Impact Index)',
+                        data: [92, 85, 78, 95],
+                        backgroundColor: 'rgba(99, 102, 241, 0.25)',
+                        borderColor: '#6366f1',
+                        borderWidth: 2,
+                        pointBackgroundColor: '#818cf8',
+                        pointBorderColor: '#fff',
+                        pointHoverBackgroundColor: '#fff',
+                        pointHoverBorderColor: '#6366f1'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        r: {
+                            angleLines: {
+                                color: 'rgba(255, 255, 255, 0.1)'
+                            },
+                            grid: {
+                                color: 'rgba(255, 255, 255, 0.1)'
+                            },
+                            pointLabels: {
+                                color: '#94a3b8',
+                                font: {
+                                    size: 11,
+                                    family: 'Inter, Noto Sans KR'
+                                }
+                            },
+                            ticks: {
+                                display: false,
+                                min: 0,
+                                max: 100
+                            }
+                        }
+                    },
+                    plugins: {
+                        legend: {
+                            display: false
+                        }
+                    }
+                }
+            });
+        });
+
+        // Filter PEST Cards Functionality
+        function filterPEST(category) {
+            const cards = document.querySelectorAll('.pest-card');
+            const buttons = document.querySelectorAll('.pest-tab-btn');
+
+            // Update Tab Buttons Styling
+            buttons.forEach(btn => {
+                btn.className = 'pest-tab-btn px-4 py-2 rounded-xl border border-slate-800 font-semibold text-sm text-slate-400 hover:text-white transition-all flex items-center gap-2';
+            });
+
+            const activeBtn = event.currentTarget;
+            if (category === 'all') {
+                activeBtn.classList.add('active-all');
+            } else {
+                activeBtn.classList.add(`active-${category}`);
+            }
+
+            // Filter Cards Logic
+            cards.forEach(card => {
+                if (category === 'all' || card.getAttribute('data-category') === category) {
+                    card.style.display = 'block';
+                    card.style.opacity = '1';
+                    card.style.transform = 'scale(1)';
+                } else {
+                    card.style.display = 'none';
+                }
+            });
+        }
+
+        // Live Search Input Filtering
+        const searchInput = document.getElementById('searchInput');
+        searchInput.addEventListener('input', function (e) {
+            const query = e.target.value.toLowerCase();
+            const items = document.querySelectorAll('.pest-item');
+
+            items.forEach(item => {
+                const text = item.textContent.toLowerCase();
+                if (text.includes(query)) {
+                    item.style.display = 'block';
+                    item.classList.add('bg-slate-800/80');
+                } else {
+                    item.style.display = 'none';
+                    item.classList.remove('bg-slate-800/80');
+                }
+            });
+
+            // Handle card visibility based on item visibility
+            const cards = document.querySelectorAll('.pest-card');
+            cards.forEach(card => {
+                const visibleItems = card.querySelectorAll('.pest-item[style*="display: block"]');
+                if (query !== '' && visibleItems.length === 0) {
+                    card.style.opacity = '0.3';
+                } else {
+                    card.style.opacity = '1';
+                }
+            });
+        });
+    </script>
+</body>
+</html>
